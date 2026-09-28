@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MailPilot AI</title>
+<style>
+:root{
+  --bg:#f5f7fb;--panel:#ffffff;--panel2:#f8fafc;--text:#142033;--muted:#6b778c;
+  --line:#e5eaf1;--accent:#2563eb;--accent2:#1d4ed8;--good:#15803d;--danger:#b42318;
+  --shadow:0 10px 30px rgba(20,32,51,.08);--radius:18px;
+}
+[data-theme="dark"]{
+  --bg:#0f172a;--panel:#111c31;--panel2:#162238;--text:#edf2f7;--muted:#9aa8bc;
+  --line:#26344c;--accent:#60a5fa;--accent2:#93c5fd;--good:#4ade80;--danger:#f87171;
+  --shadow:0 10px 30px rgba(0,0,0,.22);
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
+button,input,textarea{font:inherit}
+.app{min-height:100vh;display:grid;grid-template-columns:260px 1fr}
+.sidebar{background:var(--panel);border-right:1px solid var(--line);padding:24px 18px;display:flex;flex-direction:column;gap:22px}
+.brand{display:flex;align-items:center;gap:12px;padding:4px 8px}
+.logo{width:42px;height:42px;border-radius:14px;background:linear-gradient(135deg,#2563eb,#7c3aed);display:grid;place-items:center;color:#fff;font-weight:800}
+.brand h1{font-size:17px;margin:0}.brand p{margin:2px 0 0;color:var(--muted);font-size:12px}
+.nav{display:grid;gap:8px}
+.nav button,.new-btn{border:0;border-radius:12px;padding:12px 14px;text-align:left;cursor:pointer;background:transparent;color:var(--text)}
+.nav button:hover,.nav button.active{background:var(--panel2)}
+.new-btn{background:var(--accent);color:white;text-align:center;font-weight:700}
+.sidebar-foot{margin-top:auto;color:var(--muted);font-size:12px;padding:8px}
+.main{min-width:0;display:grid;grid-template-rows:auto 1fr}
+.topbar{height:74px;background:var(--panel);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 28px}
+.status{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px}.dot{width:9px;height:9px;border-radius:50%;background:#94a3b8}.dot.ok{background:#22c55e}
+.actions{display:flex;gap:8px}.iconbtn{border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:10px;padding:9px 12px;cursor:pointer}
+.workspace{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:20px;padding:24px;min-height:0}
+.chat-card,.side-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+.chat-card{display:grid;grid-template-rows:auto 1fr auto;min-height:calc(100vh - 123px);overflow:hidden}
+.hero{padding:26px 28px 18px;border-bottom:1px solid var(--line)}
+.hero h2{margin:0 0 7px;font-size:25px}.hero p{margin:0;color:var(--muted)}
+.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:20px}
+.quick button{background:var(--panel2);color:var(--text);border:1px solid var(--line);padding:12px;border-radius:12px;cursor:pointer}
+.messages{padding:24px;overflow:auto;display:flex;flex-direction:column;gap:16px}
+.msg{max-width:82%;padding:13px 15px;border-radius:15px;white-space:pre-wrap;line-height:1.48}
+.msg.user{align-self:flex-end;background:var(--accent);color:#fff;border-bottom-right-radius:5px}
+.msg.ai{align-self:flex-start;background:var(--panel2);border:1px solid var(--line);border-bottom-left-radius:5px}
+.email-card{align-self:flex-start;width:min(720px,94%);border:1px solid var(--line);border-radius:15px;background:var(--panel);overflow:hidden}
+.email-head{padding:14px 16px;background:var(--panel2);border-bottom:1px solid var(--line)}
+.email-head b{display:block}.email-head small{color:var(--muted)}
+.email-body{padding:16px;white-space:pre-wrap;line-height:1.5}
+.composer{padding:16px;border-top:1px solid var(--line);background:var(--panel)}
+.composebox{display:flex;gap:10px;align-items:flex-end;border:1px solid var(--line);border-radius:16px;padding:9px;background:var(--panel2)}
+textarea{width:100%;resize:none;min-height:48px;max-height:160px;border:0;outline:0;background:transparent;color:var(--text);padding:9px}
+.send{border:0;border-radius:12px;background:var(--accent);color:#fff;padding:12px 16px;font-weight:700;cursor:pointer}
+.right{display:grid;align-content:start;gap:16px}.side-card{padding:18px}.side-card h3{font-size:15px;margin:0 0 14px}
+.side-card p{color:var(--muted);font-size:13px;line-height:1.5}
+.field{display:grid;gap:7px;margin:12px 0}.field label{font-size:12px;color:var(--muted)}
+.field input{border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:11px 12px;border-radius:10px;outline:none}
+.primary{width:100%;border:0;border-radius:11px;padding:11px;background:var(--accent);color:#fff;font-weight:700;cursor:pointer}
+.secondary{width:100%;border:1px solid var(--line);border-radius:11px;padding:11px;background:var(--panel);color:var(--text);cursor:pointer;margin-top:8px}
+.notice{font-size:12px;color:var(--muted);margin-top:9px}.error{color:var(--danger)}.success{color:var(--good)}
+.modal{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;place-items:center;padding:20px;z-index:20}
+.modal.open{display:grid}.modalbox{width:min(620px,100%);background:var(--panel);border-radius:20px;padding:22px;box-shadow:var(--shadow)}
+.modalbox h2{margin:0 0 4px}.modalbox p{color:var(--muted);margin-top:0}.row{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
+.row button{width:auto;padding:10px 16px}
+@media(max-width:1000px){.workspace{grid-template-columns:1fr}.right{grid-template-columns:1fr 1fr}.chat-card{min-height:70vh}}
+@media(max-width:760px){.app{grid-template-columns:1fr}.sidebar{display:none}.workspace{padding:12px}.topbar{padding:0 14px}.right{grid-template-columns:1fr}.quick{grid-template-columns:1fr 1fr}.hero{padding:20px}.messages{padding:16px}.msg{max-width:92%}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand"><div class="logo">M</div><div><h1>MailPilot AI</h1><p>n8n Email Agent</p></div></div>
+    <button class="new-btn" onclick="newConversation()">+ New Conversation</button>
+    <div class="nav">
+      <button class="active">AI Assistant</button>
+      <button onclick="quick('Summarize my recent inbox and highlight emails that need my attention.')">Summarize Inbox</button>
+      <button onclick="quick('Show my recent emails.')">Recent Emails</button>
+      <button onclick="quick('Help me find an email. Ask me what sender, subject, or keyword I want to search for.')">Find Email</button>
+    </div>
+    <div class="sidebar-foot">Your Gmail actions remain inside your n8n workflow.</div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="status"><span id="dot" class="dot"></span><span id="connText">Webhook not configured</span></div>
+      <div class="actions"><button class="iconbtn" onclick="toggleTheme()">Theme</button><button class="iconbtn" onclick="openSettings()">Settings</button></div>
+    </header>
+
+    <section class="workspace">
+      <div class="chat-card">
+        <div class="hero">
+          <h2>Your AI Email Assistant</h2>
+          <p>Type what you want done. Your request goes to the n8n agent and the result appears here.</p>
+          <div class="quick">
+            <button onclick="quick('Summarize my recent inbox and highlight anything requiring action.')">Summarize Inbox</button>
+            <button onclick="quick('Show my 10 most recent emails.')">Recent Emails</button>
+            <button onclick="quick('Help me draft a professional email. Ask me for any essential missing details.')">Draft Email</button>
+            <button onclick="quick('Help me find a specific email. Ask me what I remember about it.')">Find Email</button>
+          </div>
+        </div>
+        <div id="messages" class="messages">
+          <div class="msg ai">Hi. Tell me what you want to do with your email. For example: “Summarize my inbox”, “Find the email from Rajvardhan”, or “Draft a follow-up email.”</div>
+        </div>
+        <div class="composer">
+          <div class="composebox">
+            <textarea id="input" placeholder="Ask your email agent..." onkeydown="keySend(event)"></textarea>
+            <button id="sendBtn" class="send" onclick="sendMessage()">Send</button>
+          </div>
+        </div>
+      </div>
+
+      <aside class="right">
+        <div class="side-card">
+          <h3>Agent Connection</h3>
+          <p>The front end sends your command to the n8n Chat Trigger. The same session ID is reused so the agent can remember drafts and approvals.</p>
+          <button class="primary" onclick="openSettings()">Configure Webhook</button>
+        </div>
+        <div class="side-card">
+          <h3>Session</h3>
+          <p id="sessionView"></p>
+          <button class="secondary" onclick="newConversation()">Start New Conversation</button>
+        </div>
+        <div class="side-card">
+          <h3>How to use</h3>
+          <p>Try commands such as “Summarize my inbox”, “Find emails about quotation”, “Draft a reply to the latest email from Rajvardhan”, or approve a prepared draft with “Yes, send it”.</p>
+        </div>
+      </aside>
+    </section>
+  </main>
+</div>
+
+<div id="settingsModal" class="modal">
+  <div class="modalbox">
+    <h2>Connection Settings</h2>
+    <p>Paste the public n8n Chat Trigger webhook URL here. It is stored only in this browser.</p>
+    <div class="field"><label>n8n webhook / chat URL</label><input id="webhookInput" type="url" placeholder="https://your-n8n-domain.com/webhook/..."></div>
+    <div class="field"><label>Request action</label><input id="actionInput" value="sendMessage"></div>
+    <div class="notice">Expected n8n chat payload: action, sessionId, chatInput. If your trigger uses different field names, adjust the sendPayload() function in this HTML.</div>
+    <div class="row"><button class="secondary" onclick="closeSettings()">Cancel</button><button class="primary" onclick="saveSettings()">Save</button></div>
+  </div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+let sessionId=localStorage.getItem('mailpilot_session')||crypto.randomUUID();
+let busy=false;
+function updateSession(){ $('#sessionView').textContent='Session ID: '+sessionId.slice(0,8)+'…'; }
+function updateConnection(){
+  const url=localStorage.getItem('mailpilot_webhook')||'';
+  $('#dot').className='dot'+(url?' ok':'');
+  $('#connText').textContent=url?'Webhook configured':'Webhook not configured';
+}
+function openSettings(){ $('#webhookInput').value=localStorage.getItem('mailpilot_webhook')||''; $('#actionInput').value=localStorage.getItem('mailpilot_action')||'sendMessage'; $('#settingsModal').classList.add('open'); }
+function closeSettings(){ $('#settingsModal').classList.remove('open'); }
+function saveSettings(){
+  const url=$('#webhookInput').value.trim();
+  if(!url){ alert('Please enter the n8n webhook URL.'); return; }
+  localStorage.setItem('mailpilot_webhook',url);
+  localStorage.setItem('mailpilot_action',$('#actionInput').value.trim()||'sendMessage');
+  closeSettings(); updateConnection(); addAI('Webhook saved. Your email agent is ready.');
+}
+function newConversation(){ sessionId=crypto.randomUUID(); localStorage.setItem('mailpilot_session',sessionId); $('#messages').innerHTML=''; addAI('New conversation started. What would you like me to do?'); updateSession(); }
+function toggleTheme(){ const next=document.documentElement.dataset.theme==='dark'?'light':'dark'; document.documentElement.dataset.theme=next; localStorage.setItem('mailpilot_theme',next); }
+function addUser(t){ const d=document.createElement('div');d.className='msg user';d.textContent=t;$('#messages').appendChild(d);scrollBottom(); }
+function addAI(t){ const d=document.createElement('div');d.className='msg ai';d.textContent=t;$('#messages').appendChild(d);scrollBottom(); }
+function addEmailCard(e){
+  const d=document.createElement('div');d.className='email-card';
+  const h=document.createElement('div');h.className='email-head';
+  const b=document.createElement('b');b.textContent=e.subject||'(No subject)';
+  const s=document.createElement('small');s.textContent=e.sender||'Unknown sender';
+  h.append(b,s);
+  const body=document.createElement('div');body.className='email-body';body.textContent=e.snippet||'';
+  d.append(h,body);$('#messages').appendChild(d);
+}
+function scrollBottom(){ const m=$('#messages');m.scrollTop=m.scrollHeight; }
+function quick(t){ $('#input').value=t;sendMessage(); }
+function keySend(e){ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();} }
+function parseResponse(raw){
+  let text='';
+  if(typeof raw==='string') text=raw;
+  else text=raw.output??raw.response??raw.text??raw.message??raw.data?.output??raw.data?.response??JSON.stringify(raw,null,2);
+  const marker=/<!--EMAILS_JSON:(\[[\s\S]*?\])-->/;
+  const match=String(text).match(marker);
+  let emails=[];
+  if(match){ try{emails=JSON.parse(match[1]);}catch(e){} text=String(text).replace(marker,'').trim(); }
+  return {text:String(text||'').trim(),emails};
+}
+async function sendPayload(url,message){
+  const action=localStorage.getItem('mailpilot_action')||'sendMessage';
+  const payload={action,sessionId,chatInput:message};
+  const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  const body=await res.text();
+  if(!res.ok) throw new Error('n8n returned HTTP '+res.status+(body?': '+body.slice(0,180):''));
+  try{return JSON.parse(body)}catch{return body}
+}
+async function sendMessage(){
+  if(busy)return;
+  const input=$('#input'); const message=input.value.trim(); if(!message)return;
+  const url=localStorage.getItem('mailpilot_webhook')||'';
+  if(!url){ openSettings(); return; }
+  input.value='';addUser(message);busy=true;$('#sendBtn').textContent='Working…';$('#sendBtn').disabled=true;
+  const loading=document.createElement('div');loading.className='msg ai';loading.textContent='Agent is working…';$('#messages').appendChild(loading);scrollBottom();
+  try{
+    const raw=await sendPayload(url,message); loading.remove();
+    const parsed=parseResponse(raw);
+    addAI(parsed.text||'The workflow completed but returned no displayable message.');
+    parsed.emails.forEach(addEmailCard);scrollBottom();
+  }catch(err){
+    loading.remove();addAI('Connection error: '+err.message+'\n\nCheck the webhook URL, whether the n8n workflow is active, and browser CORS access.');
+  }finally{busy=false;$('#sendBtn').textContent='Send';$('#sendBtn').disabled=false;input.focus();}
+}
+document.documentElement.dataset.theme=localStorage.getItem('mailpilot_theme')||'light';
+localStorage.setItem('mailpilot_session',sessionId);updateSession();updateConnection();
+</script>
+</body>
+</html>
